@@ -45,6 +45,7 @@ func DFS(adjacencyList map[string][]string, currentVertex string, listOfVisited 
 	return listOfVisited
 }
 
+// checks whether the array contains an element
 func isContain(arr []string, target string) bool {
 	if len(arr) == 0 {
 		return false
@@ -166,10 +167,11 @@ func main() {
 	fmt.Println(path)
 }
 
+// evaluate distance between two vertexes
 func DistanceBetweenVertex(first Vertex, second Vertex) float64 {
-	xAxes := math.Pow(float64(first.X), 2) - math.Pow(float64(second.X), 2)
-	yAxes := math.Pow(float64(first.Y), 2) - math.Pow(float64(second.Y), 2)
-	return math.Sqrt(xAxes + yAxes)
+	result := math.Sqrt(math.Pow(float64(first.X-second.X), 2) + math.Pow(float64(first.Y-second.Y), 2))
+	fmt.Printf("Vertex %s - Vertex %s = %f\n", first.Name, second.Name, result)
+	return result
 }
 
 // Algorithm find shortest path in graph
@@ -186,6 +188,10 @@ func DijkstraAlgo(farm UpdatedFarm) ([]Vertex, error) {
 		var nextVertex Vertex
 		for _, child := range farm.AdjacencyList[currentVert.Name] {
 			tempVertex := farm.Rooms[child]
+
+			if tempVertex.Name == "" {
+				tempVertex = farm.End
+			}
 
 			distance := DistanceBetweenVertex(currentVert, tempVertex)
 			// if distance < 0 {
