@@ -157,14 +157,14 @@ func main() {
 	}
 
 	//fmt.Println(newFarm)
-	// visited := DFS(newFarm.AdjacencyList, "1", []string{})
-	// fmt.Println(visited)
-	path, err := DijkstraAlgo(newFarm)
-	if err != nil {
-		log.Fatalln(err.Error())
-	}
+	visited := DFS(newFarm.AdjacencyList, "1", []string{})
+	fmt.Println(visited)
+	// path, err := DijkstraAlgo(newFarm)
+	// if err != nil {
+	// 	log.Fatalln(err.Error())
+	// }
 
-	fmt.Println(path)
+	// fmt.Println(path)
 }
 
 // evaluate distance between two vertexes
@@ -180,6 +180,7 @@ func DistanceBetweenVertex(first Vertex, second Vertex) float64 {
 func DijkstraAlgo(farm UpdatedFarm) ([]Vertex, error) {
 	var result []Vertex
 
+	//fmt.Println(farm.AdjacencyList)
 	currentVert := farm.Start
 	result = append(result, currentVert)
 
@@ -189,7 +190,9 @@ func DijkstraAlgo(farm UpdatedFarm) ([]Vertex, error) {
 		for _, child := range farm.AdjacencyList[currentVert.Name] {
 			tempVertex := farm.Rooms[child]
 
-			if tempVertex.Name == "" {
+			if child == farm.Start.Name {
+				tempVertex = farm.Start
+			} else if child == farm.End.Name {
 				tempVertex = farm.End
 			}
 
