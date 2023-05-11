@@ -198,12 +198,15 @@ func main() {
 	CalculateWeights(&newFarm, newFarm.Start, []string{})
 	// fmt.Println(newFarm.Weights)
 
-	// path, err := DijkstraAlgo(newFarm)
-	// if err != nil {
-	// 	log.Fatalln(err.Error())
-	// }
+	path, visited := DijkstraAlgo(&newFarm, []string{})
 
-	// fmt.Println(path)
+	fmt.Println(path)
+	fmt.Println(visited)
+
+	path, visited = DijkstraAlgo(&newFarm, visited)
+
+	fmt.Println(path)
+	fmt.Println(visited)
 }
 
 // evaluate distance between two vertexes
@@ -215,48 +218,50 @@ func DistanceBetweenVertex(first Vertex, second Vertex) float64 {
 // Algorithm find shortest path in graph
 // between start and end
 // result path described like array of Vertexes
-func DijkstraAlgo(farm UpdatedFarm) ([]Vertex, error) {
+func DijkstraAlgo(farm *UpdatedFarm, visited []string) ([]Vertex, []string) {
 	var result []Vertex
 
 	currentVert := farm.Start
 	result = append(result, currentVert)
 
 	for {
+		visited = append(visited, currentVert.Name)
 		minDistance := math.Inf(1)
+
 		var nextVertex Vertex
 		for _, child := range farm.AdjacencyList[currentVert.Name] {
-			tempVertex := farm.Rooms[child]
-
-			if child == farm.Start.Name {
-				tempVertex = farm.Start
-			} else if child == farm.End.Name {
-				tempVertex = farm.End
+			// пропускаем маршруты назад
+			if isContain(visited, child) {
+				continue
 			}
 
-			distance := DistanceBetweenVertex(currentVert, tempVertex)
-			// if distance < 0 {
-			// 	return nil, fmt.Errorf("DijkstraAlgo: can't evaluate distance between vertexes(%f): %s and %s",
-			// 		distance, currentVert.Name, tempVertex.Name)
-			// }
+			distance := farm.Weights[[2]string{currentVert.Name, child}]
+			if distance < minDistance {
+				minDistance = distance
+				nextVertex = farm.Rooms[child]
+			}
 
+			// если следующий пункт конечный, то
+			// сразу добавляем его и выходим из цикла
 			if child == farm.End.Name {
 				result = append(result, farm.End)
-				nextVertex = Vertex{}
+				nextVertex = farm.End
 				break
-			} else if distance < minDistance {
-				minDistance = distance
-				nextVertex = tempVertex
 			}
-
 		}
-		if nextVertex.Name != "" {
-			result = append(result, nextVertex)
-		} else {
+
+		// меняем весы для поиска следующего пути
+		farm.Weights[[2]string{currentVert.Name, nextVertex.Name}] = math.Inf(1)
+		farm.Weights[[2]string{nextVertex.Name, currentVert.Name}] = 0
+
+		// проверка на то, что мы достигли конечный пункт
+		if nextVertex.Name == farm.End.Name {
 			break
 		}
 
+		result = append(result, nextVertex)
 		currentVert = nextVertex
 	}
 
-	return result, nil
+	return result, visited
 }
