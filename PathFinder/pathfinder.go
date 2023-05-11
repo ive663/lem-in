@@ -176,14 +176,19 @@ func CalculateWeights(farm *UpdatedFarm, startPoint Vertex, visited []string) {
 
 }
 
+// Возвращает максимально возможное число
+// непересекающихся путей к конечной точке
+func CountPaths(farm UpdatedFarm) int {
+	return len(farm.AdjacencyList[farm.End.Name])
+}
+
 func main() {
 	farm := Farm{
 		antAmount: "3",
-		start:     "1 23 3",
-		end:       "0 9 5",
-		links: []string{"0-4", "0-6", "1-3", "4-3", "5-2", "3-5",
-			"4-2", "2-1", "7-6", "7-2", "7-4", "6-5"},
-		rooms: []string{"2 16 7", "3 16 3", "4 16 5", "5 9 3", "6 1 5", "7 4 8"},
+		start:     "0 1 0",
+		end:       "1 5 0",
+		links:     []string{"0-2", "2-3", "3-1"},
+		rooms:     []string{"2 9 0", "3 13 0"},
 	}
 
 	newFarm, err := UpdateFarm(farm)
@@ -198,15 +203,13 @@ func main() {
 	CalculateWeights(&newFarm, newFarm.Start, []string{})
 	// fmt.Println(newFarm.Weights)
 
-	path, visited := DijkstraAlgo(&newFarm, []string{})
+	for i := 0; i < CountPaths(newFarm); i++ {
+		path, visited := DijkstraAlgo(&newFarm, []string{})
 
-	fmt.Println(path)
-	fmt.Println(visited)
+		fmt.Println(path)
+		fmt.Println(visited)
+	}
 
-	path, visited = DijkstraAlgo(&newFarm, visited)
-
-	fmt.Println(path)
-	fmt.Println(visited)
 }
 
 // evaluate distance between two vertexes
