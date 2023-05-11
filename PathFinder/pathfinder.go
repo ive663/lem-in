@@ -80,6 +80,7 @@ type UpdatedFarm struct {
 	End           Vertex
 	AdjacencyList map[string][]string
 	Rooms         map[string]Vertex
+	Weights       map[[2]string]float64
 }
 
 // return empty struct in error
@@ -138,7 +139,41 @@ func UpdateFarm(raw_farm Farm) (result UpdatedFarm, err error) {
 		result.Rooms[newVertex.Name] = newVertex
 	}
 
+	result.Weights = make(map[[2]string]float64)
+
 	return result, nil
+}
+
+// Calculates distances between vertexes
+// and saves them in map
+func CalculateWeights(farm *UpdatedFarm, startPoint Vertex, visited []string) {
+	visited = append(visited, startPoint.Name)
+
+	for _, child := range farm.AdjacencyList[startPoint.Name] {
+		_, ok := farm.Weights[[2]string{startPoint.Name, child}]
+		if ok {
+			continue
+		}
+
+		var tempVertex Vertex
+		if child == farm.Start.Name {
+			tempVertex = farm.Start
+		} else if child == farm.End.Name {
+			tempVertex = farm.End
+		} else {
+			tempVertex = farm.Rooms[child]
+		}
+
+		distance := DistanceBetweenVertex(startPoint, tempVertex)
+		farm.Weights[[2]string{startPoint.Name, tempVertex.Name}] = distance
+		farm.Weights[[2]string{tempVertex.Name, startPoint.Name}] = distance
+
+		if !isContain(visited, child) {
+			CalculateWeights(farm, tempVertex, visited)
+		}
+
+	}
+
 }
 
 func main() {
@@ -157,8 +192,12 @@ func main() {
 	}
 
 	//fmt.Println(newFarm)
-	visited := DFS(newFarm.AdjacencyList, "1", []string{})
-	fmt.Println(visited)
+	// visited = DFS(newFarm.AdjacencyList, "1", []string{})
+	//fmt.Println(visited)
+
+	CalculateWeights(&newFarm, newFarm.Start, []string{})
+	// fmt.Println(newFarm.Weights)
+
 	// path, err := DijkstraAlgo(newFarm)
 	// if err != nil {
 	// 	log.Fatalln(err.Error())
@@ -170,7 +209,6 @@ func main() {
 // evaluate distance between two vertexes
 func DistanceBetweenVertex(first Vertex, second Vertex) float64 {
 	result := math.Sqrt(math.Pow(float64(first.X-second.X), 2) + math.Pow(float64(first.Y-second.Y), 2))
-	fmt.Printf("Vertex %s - Vertex %s = %f\n", first.Name, second.Name, result)
 	return result
 }
 
@@ -180,11 +218,10 @@ func DistanceBetweenVertex(first Vertex, second Vertex) float64 {
 func DijkstraAlgo(farm UpdatedFarm) ([]Vertex, error) {
 	var result []Vertex
 
-	//fmt.Println(farm.AdjacencyList)
 	currentVert := farm.Start
 	result = append(result, currentVert)
 
-	for currentVert != farm.End {
+	for {
 		minDistance := math.Inf(1)
 		var nextVertex Vertex
 		for _, child := range farm.AdjacencyList[currentVert.Name] {
