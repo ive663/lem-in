@@ -183,12 +183,35 @@ func CountPaths(farm UpdatedFarm) int {
 }
 
 func main() {
+	// farm := Farm{
+	// 	antAmount: "10",
+	// 	start:     "start 1 6",
+	// 	end:       "end 11 6",
+	// 	links: []string{"start-t", "n-e", "a-m", "A-c", "0-o", "E-a", "k-end", "start-h", "o-n",
+	// 		"m-end", "t-E", "start-0", "h-A", "e-end", "c-k", "n-m", "h-n"},
+	// 	rooms: []string{"0 4 8", "o 6 8", "n 6 6", "e 8 4", "t 1 9", "E 5 9", "a 8 9", "m 8 6",
+	// 		"h 4 6", "A 5 2", "c 8 1", "k 11 2"},
+	// }
+
+	// farm := Farm{
+	// 	antAmount: "4",
+	// 	start:     "0 0 3",
+	// 	end:       "1 8 3",
+	// 	links:     []string{"0-2", "2-3", "3-1"},
+	// 	rooms:     []string{"2 2 5", "3 4 0"},
+	// }
+
 	farm := Farm{
-		antAmount: "3",
-		start:     "0 1 0",
-		end:       "1 5 0",
-		links:     []string{"0-2", "2-3", "3-1"},
-		rooms:     []string{"2 9 0", "3 13 0"},
+		antAmount: "9",
+		start:     "start 0 3",
+		end:       "end 10 1",
+		links: []string{"G0-G1", "G1-G2", "G2-G3", "G3-G4", "G4-D3", "start-A0", "A0-A1", "A0-D1", "A1-A2",
+			"A1-B1", "A2-end", "A2-C3", "start-B0", "B0-B1", "B1-E2", "start-C0", "C0-C1", "C1-C2",
+			"C2-C3", "C3-I4", "D1-D2", "D1-F2", "D2-E2", "D2-D3", "D2-F3", "D3-end", "F2-F3", "F3-F4",
+			"F4-end", "I4-I5", "I5-end"},
+		rooms: []string{"C0 1 0", "C1 2 0", "C2 3 0", "C3 4 0", "I4 5 0", "I5 6 0", "A0 1 2", "A1 2 1",
+			"A2 4 1", "B0 1 4", "B1 2 4", "E2 6 4", "D1 6 3", "D2 7 3", "D3 8 3", "H4 4 2", "H3 5 2",
+			"F2 6 2", "F3 7 2", "F4 8 2", "G0 1 5", "G1 2 5", "G2 3 5", "G3 4 5", "G4 6 5"},
 	}
 
 	newFarm, err := UpdateFarm(farm)
@@ -204,10 +227,9 @@ func main() {
 	// fmt.Println(newFarm.Weights)
 
 	for i := 0; i < CountPaths(newFarm); i++ {
-		path, visited := DijkstraAlgo(&newFarm, []string{})
+		path := DijkstraAlgo(&newFarm)
 
 		fmt.Println(path)
-		fmt.Println(visited)
 	}
 
 }
@@ -221,9 +243,10 @@ func DistanceBetweenVertex(first Vertex, second Vertex) float64 {
 // Algorithm find shortest path in graph
 // between start and end
 // result path described like array of Vertexes
-func DijkstraAlgo(farm *UpdatedFarm, visited []string) ([]Vertex, []string) {
+func DijkstraAlgo(farm *UpdatedFarm) []Vertex {
 	var result []Vertex
 
+	var visited []string
 	currentVert := farm.Start
 	result = append(result, currentVert)
 
@@ -254,8 +277,11 @@ func DijkstraAlgo(farm *UpdatedFarm, visited []string) ([]Vertex, []string) {
 		}
 
 		// меняем весы для поиска следующего пути
-		farm.Weights[[2]string{currentVert.Name, nextVertex.Name}] = math.Inf(1)
-		farm.Weights[[2]string{nextVertex.Name, currentVert.Name}] = 0
+		// в следующей итерации данная вершина не будет выбрана
+		for _, elem := range farm.AdjacencyList[nextVertex.Name] {
+			farm.Weights[[2]string{elem, nextVertex.Name}] = math.Inf(1)
+			farm.Weights[[2]string{nextVertex.Name, elem}] = 0
+		}
 
 		// проверка на то, что мы достигли конечный пункт
 		if nextVertex.Name == farm.End.Name {
@@ -266,5 +292,5 @@ func DijkstraAlgo(farm *UpdatedFarm, visited []string) ([]Vertex, []string) {
 		currentVert = nextVertex
 	}
 
-	return result, visited
+	return result
 }
