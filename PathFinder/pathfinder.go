@@ -72,7 +72,7 @@ type UpdatedFarm struct {
 	Start         string
 	End           string
 	AdjacencyList map[string][]string
-	Weights       map[[2]string]float64
+	Weights       map[[2]string]bool
 }
 
 func UpdateFarm(raw_farm Farm) (result UpdatedFarm, err error) {
@@ -90,7 +90,7 @@ func UpdateFarm(raw_farm Farm) (result UpdatedFarm, err error) {
 		return UpdatedFarm{}, fmt.Errorf("UpdateFarm: can't transform links field of Farm")
 	}
 
-	result.Weights = make(map[[2]string]float64)
+	result.Weights = make(map[[2]string]bool)
 
 	return result, nil
 }
@@ -114,8 +114,8 @@ func CalculateWeights(farm *UpdatedFarm, startPoint string, visited []string) {
 			continue
 		}
 
-		farm.Weights[[2]string{startPoint, child}] = 0
-		farm.Weights[[2]string{child, startPoint}] = 0
+		farm.Weights[[2]string{startPoint, child}] = true
+		farm.Weights[[2]string{child, startPoint}] = true
 
 		if !isContain(visited, child) {
 			CalculateWeights(farm, child, visited)
@@ -132,23 +132,23 @@ func CountPaths(farm UpdatedFarm) int {
 }
 
 func main() {
-	// farm := Farm{
-	// 	antAmount: "10",
-	// 	start:     "start 1 6",
-	// 	end:       "end 11 6",
-	// 	links: []string{"start-t", "n-e", "a-m", "A-c", "0-o", "E-a", "k-end", "start-h", "o-n",
-	// 		"m-end", "t-E", "start-0", "h-A", "e-end", "c-k", "n-m", "h-n"},
-	// 	rooms: []string{"0 4 8", "o 6 8", "n 6 6", "e 8 4", "t 1 9", "E 5 9", "a 8 9", "m 8 6",
-	// 		"h 4 6", "A 5 2", "c 8 1", "k 11 2"},
-	// }
-
 	farm := Farm{
-		antAmount: "4",
-		start:     "0 0 3",
-		end:       "1 8 3",
-		links:     []string{"0-2", "2-3", "3-1"},
-		rooms:     []string{"2 2 5", "3 4 0"},
+		antAmount: "10",
+		start:     "start 1 6",
+		end:       "end 11 6",
+		links: []string{"start-t", "n-e", "a-m", "A-c", "0-o", "E-a", "k-end", "start-h", "o-n",
+			"m-end", "t-E", "start-0", "h-A", "e-end", "c-k", "n-m", "h-n"},
+		rooms: []string{"0 4 8", "o 6 8", "n 6 6", "e 8 4", "t 1 9", "E 5 9", "a 8 9", "m 8 6",
+			"h 4 6", "A 5 2", "c 8 1", "k 11 2"},
 	}
+
+	// farm := Farm{
+	// 	antAmount: "4",
+	// 	start:     "0 0 3",
+	// 	end:       "1 8 3",
+	// 	links:     []string{"0-2", "2-3", "3-1"},
+	// 	rooms:     []string{"2 2 5", "3 4 0"},
+	// }
 
 	// farm := Farm{
 	// 	antAmount: "9",
@@ -197,31 +197,28 @@ func DijkstraAlgo(farm *UpdatedFarm, parent string, parents []string) []string {
 	// поиск конца среди текущих потомков
 	for _, child := range childs {
 		if child == farm.End {
-			result = append(result, child)
+			result = append(result, parents...)
 			result = append(result, parent)
+			result = append(result, child)
 			return result
 		}
 	}
 
-	var rightRooms []string
-
 	// переход к потомкам на уровень ниже
 	for _, child := range childs {
-		if !isContain(parents, child) {
+		if !isContain(parents, child) &&
+			farm.Weights[[2]string{parent, child}] {
 			parents = append(parents, parent)
-			rightRooms = DijkstraAlgo(farm, child, parents)
+			result = DijkstraAlgo(farm, child, parents)
 		}
 
 		// если нет верного пути впереди
-		if rightRooms == nil {
+		if result == nil {
 			continue
 		}
 
-		// иначе добавить его к текущему результату
-		result = append(result, rightRooms...)
+		farm.Weights[[2]string{parent, child}] = false
 
-		// добавление текущего родителя
-		result = append(result, parent)
 		return result
 	}
 
