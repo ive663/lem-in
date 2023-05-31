@@ -144,32 +144,21 @@ func UpdateFarm(raw_farm Farm) (result UpdatedFarm, err error) {
 	return result, nil
 }
 
-// Calculates distances between vertexes
-// and saves them in map
-func CalculateWeights(farm *UpdatedFarm, startPoint Vertex, visited []string) {
-	visited = append(visited, startPoint.Name)
+// Создает начальную схему весов, где все равно 0
+func CalculateWeights(farm *UpdatedFarm, startPoint string, visited []string) {
+	visited = append(visited, startPoint)
 
-	for _, child := range farm.AdjacencyList[startPoint.Name] {
-		_, ok := farm.Weights[[2]string{startPoint.Name, child}]
+	for _, child := range farm.AdjacencyList[startPoint] {
+		_, ok := farm.Weights[[2]string{startPoint, child}]
 		if ok {
 			continue
 		}
 
-		var tempVertex Vertex
-		if child == farm.Start.Name {
-			tempVertex = farm.Start
-		} else if child == farm.End.Name {
-			tempVertex = farm.End
-		} else {
-			tempVertex = farm.Rooms[child]
-		}
-
-		distance := DistanceBetweenVertex(startPoint, tempVertex)
-		farm.Weights[[2]string{startPoint.Name, tempVertex.Name}] = distance
-		farm.Weights[[2]string{tempVertex.Name, startPoint.Name}] = distance
+		farm.Weights[[2]string{startPoint, child}] = 0
+		farm.Weights[[2]string{child, startPoint}] = 0
 
 		if !isContain(visited, child) {
-			CalculateWeights(farm, tempVertex, visited)
+			CalculateWeights(farm, child, visited)
 		}
 
 	}
@@ -223,21 +212,17 @@ func main() {
 	// visited = DFS(newFarm.AdjacencyList, "1", []string{})
 	//fmt.Println(visited)
 
-	CalculateWeights(&newFarm, newFarm.Start, []string{})
-	// fmt.Println(newFarm.Weights)
+	CalculateWeights(&newFarm, newFarm.Start.Name, []string{})
+	//fmt.Println(newFarm.Weights)
 
-	for i := 0; i < CountPaths(newFarm); i++ {
+	numOfPaths := CountPaths(newFarm)
+	paths := [][]Vertex{}
+	for len(paths) != numOfPaths {
 		path := DijkstraAlgo(&newFarm)
 
-		fmt.Println(path)
+		paths = append(paths, path)
 	}
 
-}
-
-// evaluate distance between two vertexes
-func DistanceBetweenVertex(first Vertex, second Vertex) float64 {
-	result := math.Sqrt(math.Pow(float64(first.X-second.X), 2) + math.Pow(float64(first.Y-second.Y), 2))
-	return result
 }
 
 // Algorithm find shortest path in graph
@@ -280,8 +265,9 @@ func DijkstraAlgo(farm *UpdatedFarm) []Vertex {
 		// в следующей итерации данная вершина не будет выбрана
 		for _, elem := range farm.AdjacencyList[nextVertex.Name] {
 			farm.Weights[[2]string{elem, nextVertex.Name}] = math.Inf(1)
-			farm.Weights[[2]string{nextVertex.Name, elem}] = 0
 		}
+
+		farm.Weights[[2]string{nextVertex.Name, currentVert.Name}] = 0
 
 		// проверка на то, что мы достигли конечный пункт
 		if nextVertex.Name == farm.End.Name {
