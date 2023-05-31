@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"math"
 	"strconv"
 	"strings"
 )
@@ -76,30 +75,6 @@ type UpdatedFarm struct {
 	Weights       map[[2]string]float64
 }
 
-// return empty struct in error
-// func TransformToVertex(data string) Vertex {
-// 	var result Vertex
-// 	splittedData := strings.Split(data, " ")
-// 	if len(splittedData) == 0 {
-// 		return Vertex{}
-// 	}
-
-// 	result.Name = splittedData[0]
-
-// 	var err error
-// 	result.X, err = strconv.Atoi(splittedData[1])
-// 	if err != nil {
-// 		return Vertex{}
-// 	}
-
-// 	result.Y, err = strconv.Atoi(splittedData[2])
-// 	if err != nil {
-// 		return Vertex{}
-// 	}
-
-// 	return result
-// }
-
 func UpdateFarm(raw_farm Farm) (result UpdatedFarm, err error) {
 	result.AntAmount, err = strconv.Atoi(raw_farm.antAmount)
 	if err != nil {
@@ -167,101 +142,88 @@ func main() {
 	// 		"h 4 6", "A 5 2", "c 8 1", "k 11 2"},
 	// }
 
-	// farm := Farm{
-	// 	antAmount: "4",
-	// 	start:     "0 0 3",
-	// 	end:       "1 8 3",
-	// 	links:     []string{"0-2", "2-3", "3-1"},
-	// 	rooms:     []string{"2 2 5", "3 4 0"},
-	// }
-
 	farm := Farm{
-		antAmount: "9",
-		start:     "start 0 3",
-		end:       "end 10 1",
-		links: []string{"G0-G1", "G1-G2", "G2-G3", "G3-G4", "G4-D3", "start-A0", "A0-A1", "A0-D1", "A1-A2",
-			"A1-B1", "A2-end", "A2-C3", "start-B0", "B0-B1", "B1-E2", "start-C0", "C0-C1", "C1-C2",
-			"C2-C3", "C3-I4", "D1-D2", "D1-F2", "D2-E2", "D2-D3", "D2-F3", "D3-end", "F2-F3", "F3-F4",
-			"F4-end", "I4-I5", "I5-end"},
-		rooms: []string{"C0 1 0", "C1 2 0", "C2 3 0", "C3 4 0", "I4 5 0", "I5 6 0", "A0 1 2", "A1 2 1",
-			"A2 4 1", "B0 1 4", "B1 2 4", "E2 6 4", "D1 6 3", "D2 7 3", "D3 8 3", "H4 4 2", "H3 5 2",
-			"F2 6 2", "F3 7 2", "F4 8 2", "G0 1 5", "G1 2 5", "G2 3 5", "G3 4 5", "G4 6 5"},
+		antAmount: "4",
+		start:     "0 0 3",
+		end:       "1 8 3",
+		links:     []string{"0-2", "2-3", "3-1"},
+		rooms:     []string{"2 2 5", "3 4 0"},
 	}
+
+	// farm := Farm{
+	// 	antAmount: "9",
+	// 	start:     "start 0 3",
+	// 	end:       "end 10 1",
+	// 	links: []string{"G0-G1", "G1-G2", "G2-G3", "G3-G4", "G4-D3", "start-A0", "A0-A1", "A0-D1", "A1-A2",
+	// 		"A1-B1", "A2-end", "A2-C3", "start-B0", "B0-B1", "B1-E2", "start-C0", "C0-C1", "C1-C2",
+	// 		"C2-C3", "C3-I4", "D1-D2", "D1-F2", "D2-E2", "D2-D3", "D2-F3", "D3-end", "F2-F3", "F3-F4",
+	// 		"F4-end", "I4-I5", "I5-end"},
+	// 	rooms: []string{"C0 1 0", "C1 2 0", "C2 3 0", "C3 4 0", "I4 5 0", "I5 6 0", "A0 1 2", "A1 2 1",
+	// 		"A2 4 1", "B0 1 4", "B1 2 4", "E2 6 4", "D1 6 3", "D2 7 3", "D3 8 3", "H4 4 2", "H3 5 2",
+	// 		"F2 6 2", "F3 7 2", "F4 8 2", "G0 1 5", "G1 2 5", "G2 3 5", "G3 4 5", "G4 6 5"},
+	// }
 
 	newFarm, err := UpdateFarm(farm)
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
 
-	fmt.Println(newFarm)
+	//fmt.Println(newFarm)
 	// visited = DFS(newFarm.AdjacencyList, "1", []string{})
 	//fmt.Println(visited)
 
-	//CalculateWeights(&newFarm, newFarm.Start, []string{})
+	CalculateWeights(&newFarm, newFarm.Start, []string{})
 	//fmt.Println(newFarm.Weights)
 
-	// numOfPaths := CountPaths(newFarm)
-	// paths := [][]string{}
-	// for len(paths) != numOfPaths {
-	// 	path := DijkstraAlgo(&newFarm)
+	numOfPaths := CountPaths(newFarm)
+	paths := [][]string{}
+	for len(paths) != numOfPaths {
+		path := DijkstraAlgo(&newFarm, newFarm.Start, []string{})
+		fmt.Println(path)
 
-	// 	paths = append(paths, path)
-	// }
+		paths = append(paths, path)
+	}
 
 }
 
 // Algorithm find shortest path in graph
 // between start and end
 // result path described like array of Vertexes
-func DijkstraAlgo(farm *UpdatedFarm) []string {
+func DijkstraAlgo(farm *UpdatedFarm, parent string, parents []string) []string {
 	var result []string
 
-	var visited []string
-	currentVert := farm.Start
-	result = append(result, currentVert)
+	childs := farm.AdjacencyList[parent]
 
-	for {
-		visited = append(visited, currentVert)
-		minDistance := math.Inf(1)
-
-		var nextVertex string
-		for _, child := range farm.AdjacencyList[currentVert] {
-			// пропускаем маршруты назад
-			if isContain(visited, child) {
-				continue
-			}
-
-			distance := farm.Weights[[2]string{currentVert, child}]
-			if distance < minDistance {
-				minDistance = distance
-				nextVertex = child
-			}
-
-			// если следующий пункт конечный, то
-			// сразу добавляем его и выходим из цикла
-			if child == farm.End {
-				result = append(result, farm.End)
-				nextVertex = farm.End
-				break
-			}
+	// поиск конца среди текущих потомков
+	for _, child := range childs {
+		if child == farm.End {
+			result = append(result, child)
+			result = append(result, parent)
+			return result
 		}
-
-		// меняем весы для поиска следующего пути
-		// в следующей итерации данная вершина не будет выбрана
-		for _, elem := range farm.AdjacencyList[nextVertex] {
-			farm.Weights[[2]string{elem, nextVertex}] = math.Inf(1)
-		}
-
-		farm.Weights[[2]string{nextVertex, currentVert}] = 0
-
-		// проверка на то, что мы достигли конечный пункт
-		if nextVertex == farm.End {
-			break
-		}
-
-		result = append(result, nextVertex)
-		currentVert = nextVertex
 	}
 
-	return result
+	var rightRooms []string
+
+	// переход к потомкам на уровень ниже
+	for _, child := range childs {
+		if !isContain(parents, child) {
+			parents = append(parents, parent)
+			rightRooms = DijkstraAlgo(farm, child, parents)
+		}
+
+		// если нет верного пути впереди
+		if rightRooms == nil {
+			continue
+		}
+
+		// иначе добавить его к текущему результату
+		result = append(result, rightRooms...)
+
+		// добавление текущего родителя
+		result = append(result, parent)
+		return result
+	}
+
+	return nil
 }
