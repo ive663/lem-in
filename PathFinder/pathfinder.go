@@ -68,44 +68,37 @@ type Farm struct {
 	rooms     []string
 }
 
-type Vertex struct {
-	Name string
-	X    int
-	Y    int
-}
-
 type UpdatedFarm struct {
 	AntAmount     int
-	Start         Vertex
-	End           Vertex
+	Start         string
+	End           string
 	AdjacencyList map[string][]string
-	Rooms         map[string]Vertex
 	Weights       map[[2]string]float64
 }
 
 // return empty struct in error
-func TransformToVertex(data string) Vertex {
-	var result Vertex
-	splittedData := strings.Split(data, " ")
-	if len(splittedData) == 0 {
-		return Vertex{}
-	}
+// func TransformToVertex(data string) Vertex {
+// 	var result Vertex
+// 	splittedData := strings.Split(data, " ")
+// 	if len(splittedData) == 0 {
+// 		return Vertex{}
+// 	}
 
-	result.Name = splittedData[0]
+// 	result.Name = splittedData[0]
 
-	var err error
-	result.X, err = strconv.Atoi(splittedData[1])
-	if err != nil {
-		return Vertex{}
-	}
+// 	var err error
+// 	result.X, err = strconv.Atoi(splittedData[1])
+// 	if err != nil {
+// 		return Vertex{}
+// 	}
 
-	result.Y, err = strconv.Atoi(splittedData[2])
-	if err != nil {
-		return Vertex{}
-	}
+// 	result.Y, err = strconv.Atoi(splittedData[2])
+// 	if err != nil {
+// 		return Vertex{}
+// 	}
 
-	return result
-}
+// 	return result
+// }
 
 func UpdateFarm(raw_farm Farm) (result UpdatedFarm, err error) {
 	result.AntAmount, err = strconv.Atoi(raw_farm.antAmount)
@@ -113,35 +106,27 @@ func UpdateFarm(raw_farm Farm) (result UpdatedFarm, err error) {
 		return result, fmt.Errorf("UpdateFarm: %w", err)
 	}
 
-	var emptyV Vertex
-	result.Start = TransformToVertex(raw_farm.start)
-	if result.Start == emptyV {
-		return UpdatedFarm{}, fmt.Errorf("UpdateFarm: can't transform start field of Farm")
-	}
+	result.Start = GetName(raw_farm.start)
 
-	result.End = TransformToVertex(raw_farm.end)
-	if result.Start == emptyV {
-		return UpdatedFarm{}, fmt.Errorf("UpdateFarm: can't transform end field of Farm")
-	}
+	result.End = GetName(raw_farm.end)
 
 	result.AdjacencyList = TransformToAdjacencyList(raw_farm.links)
 	if len(result.AdjacencyList) == 0 {
 		return UpdatedFarm{}, fmt.Errorf("UpdateFarm: can't transform links field of Farm")
 	}
 
-	result.Rooms = make(map[string]Vertex)
-	for _, elem := range raw_farm.rooms {
-		var newVertex Vertex = TransformToVertex(elem)
-		if newVertex == emptyV {
-			return UpdatedFarm{}, fmt.Errorf("UpdateFarm: can't transform rooms field of Farm")
-		}
-
-		result.Rooms[newVertex.Name] = newVertex
-	}
-
 	result.Weights = make(map[[2]string]float64)
 
 	return result, nil
+}
+
+func GetName(info string) string {
+	splittedData := strings.Split(info, " ")
+	if len(splittedData) == 0 {
+		return ""
+	}
+
+	return splittedData[0]
 }
 
 // Создает начальную схему весов, где все равно 0
@@ -168,7 +153,7 @@ func CalculateWeights(farm *UpdatedFarm, startPoint string, visited []string) {
 // Возвращает максимально возможное число
 // непересекающихся путей к конечной точке
 func CountPaths(farm UpdatedFarm) int {
-	return len(farm.AdjacencyList[farm.End.Name])
+	return len(farm.AdjacencyList[farm.End])
 }
 
 func main() {
@@ -208,53 +193,53 @@ func main() {
 		log.Fatalln(err.Error())
 	}
 
-	//fmt.Println(newFarm)
+	fmt.Println(newFarm)
 	// visited = DFS(newFarm.AdjacencyList, "1", []string{})
 	//fmt.Println(visited)
 
-	CalculateWeights(&newFarm, newFarm.Start.Name, []string{})
+	//CalculateWeights(&newFarm, newFarm.Start, []string{})
 	//fmt.Println(newFarm.Weights)
 
-	numOfPaths := CountPaths(newFarm)
-	paths := [][]Vertex{}
-	for len(paths) != numOfPaths {
-		path := DijkstraAlgo(&newFarm)
+	// numOfPaths := CountPaths(newFarm)
+	// paths := [][]string{}
+	// for len(paths) != numOfPaths {
+	// 	path := DijkstraAlgo(&newFarm)
 
-		paths = append(paths, path)
-	}
+	// 	paths = append(paths, path)
+	// }
 
 }
 
 // Algorithm find shortest path in graph
 // between start and end
 // result path described like array of Vertexes
-func DijkstraAlgo(farm *UpdatedFarm) []Vertex {
-	var result []Vertex
+func DijkstraAlgo(farm *UpdatedFarm) []string {
+	var result []string
 
 	var visited []string
 	currentVert := farm.Start
 	result = append(result, currentVert)
 
 	for {
-		visited = append(visited, currentVert.Name)
+		visited = append(visited, currentVert)
 		minDistance := math.Inf(1)
 
-		var nextVertex Vertex
-		for _, child := range farm.AdjacencyList[currentVert.Name] {
+		var nextVertex string
+		for _, child := range farm.AdjacencyList[currentVert] {
 			// пропускаем маршруты назад
 			if isContain(visited, child) {
 				continue
 			}
 
-			distance := farm.Weights[[2]string{currentVert.Name, child}]
+			distance := farm.Weights[[2]string{currentVert, child}]
 			if distance < minDistance {
 				minDistance = distance
-				nextVertex = farm.Rooms[child]
+				nextVertex = child
 			}
 
 			// если следующий пункт конечный, то
 			// сразу добавляем его и выходим из цикла
-			if child == farm.End.Name {
+			if child == farm.End {
 				result = append(result, farm.End)
 				nextVertex = farm.End
 				break
@@ -263,14 +248,14 @@ func DijkstraAlgo(farm *UpdatedFarm) []Vertex {
 
 		// меняем весы для поиска следующего пути
 		// в следующей итерации данная вершина не будет выбрана
-		for _, elem := range farm.AdjacencyList[nextVertex.Name] {
-			farm.Weights[[2]string{elem, nextVertex.Name}] = math.Inf(1)
+		for _, elem := range farm.AdjacencyList[nextVertex] {
+			farm.Weights[[2]string{elem, nextVertex}] = math.Inf(1)
 		}
 
-		farm.Weights[[2]string{nextVertex.Name, currentVert.Name}] = 0
+		farm.Weights[[2]string{nextVertex, currentVert}] = 0
 
 		// проверка на то, что мы достигли конечный пункт
-		if nextVertex.Name == farm.End.Name {
+		if nextVertex == farm.End {
 			break
 		}
 
