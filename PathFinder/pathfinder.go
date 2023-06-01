@@ -157,54 +157,152 @@ func main() {
 	// 	rooms:     []string{"2 2 5", "3 4 0"},
 	// }
 
+	// farm := Farm{
+	// 	antAmount: "9",
+	// 	start:     "start 0 3",
+	// 	end:       "end 10 1",
+	// 	links: []string{"G0-G1", "G1-G2", "G2-G3", "G3-G4", "G4-D3", "start-A0", "A0-A1", "A0-D1", "A1-A2",
+	// 		"A1-B1", "A2-end", "A2-C3", "start-B0", "B0-B1", "B1-E2", "start-C0", "C0-C1", "C1-C2",
+	// 		"C2-C3", "C3-I4", "D1-D2", "D1-F2", "D2-E2", "D2-D3", "D2-F3", "D3-end", "F2-F3", "F3-F4",
+	// 		"F4-end", "I4-I5", "I5-end"},
+	// 	rooms: []string{"C0 1 0", "C1 2 0", "C2 3 0", "C3 4 0", "I4 5 0", "I5 6 0", "A0 1 2", "A1 2 1",
+	// 		"A2 4 1", "B0 1 4", "B1 2 4", "E2 6 4", "D1 6 3", "D2 7 3", "D3 8 3", "H4 4 2", "H3 5 2",
+	// 		"F2 6 2", "F3 7 2", "F4 8 2", "G0 1 5", "G1 2 5", "G2 3 5", "G3 4 5", "G4 6 5"},
+	// }
+
 	farm := Farm{
-		antAmount: "9",
-		start:     "start 0 3",
-		end:       "end 10 1",
-		links: []string{"G0-G1", "G1-G2", "G2-G3", "G3-G4", "G4-D3", "start-A0", "A0-A1", "A0-D1", "A1-A2",
-			"A1-B1", "A2-end", "A2-C3", "start-B0", "B0-B1", "B1-E2", "start-C0", "C0-C1", "C1-C2",
-			"C2-C3", "C3-I4", "D1-D2", "D1-F2", "D2-E2", "D2-D3", "D2-F3", "D3-end", "F2-F3", "F3-F4",
-			"F4-end", "I4-I5", "I5-end"},
-		rooms: []string{"C0 1 0", "C1 2 0", "C2 3 0", "C3 4 0", "I4 5 0", "I5 6 0", "A0 1 2", "A1 2 1",
-			"A2 4 1", "B0 1 4", "B1 2 4", "E2 6 4", "D1 6 3", "D2 7 3", "D3 8 3", "H4 4 2", "H3 5 2",
-			"F2 6 2", "F3 7 2", "F4 8 2", "G0 1 5", "G1 2 5", "G2 3 5", "G3 4 5", "G4 6 5"},
+		antAmount: "20",
+		start:     "0 2 0",
+		end:       "3 5 3",
+		links:     []string{"0-1", "0-3", "1-2", "3-2"},
+		rooms:     []string{"1 4 1", "2 6 0"},
 	}
+
+	// farm := Farm{
+	// 	antAmount: "100",
+	// 	start:     "richard 0 6",
+	// 	end:       "peter 14 6",
+	// 	links: []string{"richard-dinish", "dinish-jimYoung", "richard-gilfoyle", "gilfoyle-peter", "gilfoyle-erlich",
+	// 		"richard-erlich", "erlich-jimYoung", "jimYoung-peter"},
+	// 	rooms: []string{"gilfoyle 6 3", "erlich 9 6", "dinish 6 9", "jimYoung 11 7"},
+	// }
 
 	newFarm, err := UpdateFarm(farm)
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
 
-	//fmt.Println(newFarm)
-	// visited = DFS(newFarm.AdjacencyList, "1", []string{})
-	//fmt.Println(visited)
-
+	// Делаем возможными все маршруты
 	CalculateWeights(&newFarm, newFarm.Start, []string{})
-	//fmt.Println(newFarm.Weights)
 
 	numOfPaths := CountPaths(newFarm)
+	// список оптимальных маршрутов
 	paths := [][]string{}
-	for len(paths) != numOfPaths {
-		path := DijkstraAlgo(&newFarm, newFarm.Start, []string{})
-		fmt.Println(path)
+	// список маршрутов которыми нужно пренебречь
+	exceptionPaths := [][]string{}
 
-		paths = append(paths, path)
+	for i := 0; i < numOfPaths; i++ {
+		// список потенциальных маршрутов приводящих к цели
+		possiblePaths := [][]string{}
+
+		// если есть прямой путь от старта к финишу, то берем его
+		if newFarm.AdjacencyList[newFarm.Start][i] == newFarm.End {
+			possiblePaths = append(possiblePaths, []string{newFarm.End})
+		} else {
+			Pathfinder(&newFarm, newFarm.AdjacencyList[newFarm.Start][i], []string{}, &possiblePaths)
+		}
+
+		if len(possiblePaths) == 0 {
+			// если нет возможных маршрутов
+			// заносим последний маршрут в список исключений
+			exceptionPaths = append(exceptionPaths, paths[len(paths)-1])
+			// делаем возможным проход по нему
+			ChangeWeights(&newFarm, paths[len(paths)-1], true)
+			// удаляем из результирующего списка
+			paths = paths[:len(paths)-1]
+			i = i - 2
+			continue
+		}
+
+		// ищем самый короткий из возможных
+		shortestPath := Shortest(possiblePaths, exceptionPaths)
+		// делаем невозможным проход по нему для последующих алгоритмов
+		ChangeWeights(&newFarm, shortestPath, false)
+
+		paths = append(paths, shortestPath)
+	}
+
+	for _, elem := range paths {
+		fmt.Println(elem)
 	}
 
 }
 
-func ClosePaths(farm *UpdatedFarm, child string) {
+// Changes weights in UpdatedFarm struct
+func ChangeWeights(farm *UpdatedFarm, path []string, value bool) {
+	for _, room := range path {
+		ChangePaths(farm, room, value)
+	}
+}
+
+// func that compare arrays of string
+// returns true if arrays is equal, else - false
+func isEqual(arr1 []string, arr2 []string) bool {
+	if len(arr1) != len(arr2) {
+		return false
+	}
+
+	for i := 0; i < len(arr1); i++ {
+		if arr1[i] != arr2[i] {
+			return false
+		}
+	}
+
+	return true
+}
+
+func DeleteExceptions(paths *[][]string, exception [][]string) {
+	for i := len(*paths) - 1; i >= 0; i-- {
+		for _, exc := range exception {
+			if isEqual((*paths)[i], exc) {
+				*paths = append((*paths)[:i], (*paths)[i+1:]...)
+			}
+		}
+	}
+}
+
+//ищет кратчайший маршрут среди возможных, отвергая при этом исключения
+func Shortest(paths [][]string, exception [][]string) []string {
+	minLen := 10000
+	var result []string
+
+	if len(exception) != 0 {
+		DeleteExceptions(&paths, exception)
+	}
+
+	for _, path := range paths {
+		if len(path) < minLen {
+			minLen = len(path)
+			result = path
+		}
+	}
+
+	return result
+}
+
+// changes weights to false from all parents to given child
+func ChangePaths(farm *UpdatedFarm, child string, value bool) {
 	parents := farm.AdjacencyList[child]
 
 	for _, parent := range parents {
-		farm.Weights[[2]string{parent, child}] = false
+		farm.Weights[[2]string{parent, child}] = value
 	}
 }
 
 // Algorithm find shortest path in graph
 // between start and end
-// result path described like array of Vertexes
-func DijkstraAlgo(farm *UpdatedFarm, parent string, parents []string) []string {
+// result path described like array of strings
+func Pathfinder(farm *UpdatedFarm, parent string, visited []string, allPaths *[][]string) []string {
 	var result []string
 
 	childs := farm.AdjacencyList[parent]
@@ -212,31 +310,23 @@ func DijkstraAlgo(farm *UpdatedFarm, parent string, parents []string) []string {
 	// поиск конца среди текущих потомков
 	for _, child := range childs {
 		if child == farm.End {
-			result = append(result, parents...)
+			result = append(result, visited...)
 			result = append(result, parent)
 			result = append(result, child)
-			return result
+
+			*allPaths = append(*allPaths, result)
+			return nil
 		}
 	}
 
 	// переход к потомкам на уровень ниже
 	for _, child := range childs {
-		if !isContain(parents, child) &&
+		if child != farm.Start && !isContain(visited, child) &&
 			farm.Weights[[2]string{parent, child}] {
-			parents = append(parents, parent)
-			result = DijkstraAlgo(farm, child, parents)
+			visited = append(visited, parent)
+			result = Pathfinder(farm, child, visited, allPaths)
+			visited = visited[:len(visited)-1]
 		}
-
-		// если нет верного пути впереди
-		if result == nil {
-			continue
-		}
-
-		// делаем так чтобы текущая вершина не была выбрана
-		// из родителей
-		ClosePaths(farm, child)
-
-		return result
 	}
 
 	return nil
