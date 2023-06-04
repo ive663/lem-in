@@ -2,7 +2,7 @@ package internal
 
 import "fmt"
 
-func Queue() {
+func Queue(path [][]string, antsAmount int) [][]string {
 
 	paths1 := [][]string{
 
@@ -25,7 +25,7 @@ func Queue() {
 		{"e", "E", "a", "m", "A", "c", "k"},
 	}
 
-	antsNbr := 10
+	antsAmount = 10
 	rooms := []int{}
 	for i, _ := range paths2 {
 		rooms = append(rooms, len(paths2[i]))
@@ -40,12 +40,12 @@ func Queue() {
 	antsQueue := [3]int{}
 	p := 1
 	// i := 0
-	for antsNbr > 0 {
+	for antsAmount > 0 {
 		if len(rooms) == p {
 			fmt.Println("p: ", p)
 			antsQueue[p-1]++
 			fmt.Println("antsQueue: ", antsQueue)
-			antsNbr--
+			antsAmount--
 
 			// fmt.Println("zero:", p)
 			p = 1
@@ -53,7 +53,7 @@ func Queue() {
 
 		if rooms[p-1]+antsQueue[p-1] <= rooms[p]+antsQueue[p] {
 			antsQueue[p-1]++
-			antsNbr--
+			antsAmount--
 			fmt.Println("rooms:     ", rooms)
 
 			fmt.Println("antsQueue: ", antsQueue)
@@ -63,7 +63,7 @@ func Queue() {
 		}
 		// fmt.Println("p:", p)
 	}
-	fmt.Println("antsNbr: ", antsNbr)
+	fmt.Println("antsAmount: ", antsAmount)
 	fmt.Println("res queue: ", rooms)
 
 	fmt.Println("res antsQueue: ", antsQueue)
