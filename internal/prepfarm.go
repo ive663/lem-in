@@ -1,7 +1,9 @@
-package prepfarm
+package internal
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"strings"
 
 	// "log"
@@ -9,17 +11,34 @@ import (
 	"strconv"
 )
 
+type UpdatedFarm struct {
+	AntAmount     int
+	Start         string
+	End           string
+	AdjacencyList map[string][]string
+	Weights       map[[2]string]bool
+	Queue         []int
+	Paths         [][]string
+}
+type Farm struct {
+	AntAmount string
+	Start     string
+	End       string
+	Links     []string
+	Rooms     []string
+}
+
 func UpdateFarm(raw_farm Farm) (result UpdatedFarm, err error) {
-	result.AntAmount, err = strconv.Atoi(raw_farm.antAmount)
+	result.AntAmount, err = strconv.Atoi(raw_farm.AntAmount)
 	if err != nil {
 		return result, fmt.Errorf("UpdateFarm: %w", err)
 	}
 
-	result.Start = GetName(raw_farm.start)
+	result.Start = GetName(raw_farm.Start)
 
-	result.End = GetName(raw_farm.end)
+	result.End = GetName(raw_farm.End)
 
-	result.AdjacencyList = TransformToAdjacencyList(raw_farm.links)
+	result.AdjacencyList = TransformToAdjacencyList(raw_farm.Links)
 	if len(result.AdjacencyList) == 0 {
 		return UpdatedFarm{}, fmt.Errorf("UpdateFarm: can't transform links field of Farm")
 	}
@@ -55,90 +74,65 @@ func TransformToAdjacencyList(listOfEdges []string) map[string][]string {
 	return result
 }
 
-// func prepFarm(filename string) (result Farm, err error) {
-// 	f, err := os.Open(filename)
-// 	if err != nil {
-// 		return Farm{}, fmt.Errorf("prepFarm: %w", err)
-// 	}
-// 	defer f.Close()
+func PrepFarm(filename string) (result UpdatedFarm, err error) {
+	f, err := os.Open(filename)
+	if err != nil {
+		return UpdatedFarm{}, fmt.Errorf("prepFarm: %w", err)
+	}
+	defer f.Close()
 
-// 	fileScanner := bufio.NewScanner(f)
-// 	fileScanner.Split(bufio.ScanLines)
+	fileScanner := bufio.NewScanner(f)
+	fileScanner.Split(bufio.ScanLines)
 
-// 	var fileLines []string
-// 	var idxOfStart, idxOfEnd int
-// 	for fileScanner.Scan() {
-// 		line := fileScanner.Text()
-// 		if line == "##start" {
-// 			idxOfStart = len(fileLines)
-// 		}
-// 		if line == "##end" {
-// 			idxOfEnd = len(fileLines)
-// 		}
-// 		fileLines = append(fileLines, line)
-// 	}
-// 	if len(fileLines) == 0 {
-// 		return Farm{}, fmt.Errorf("prepFarm: empty file")
-// 	}
+	var fileLines []string
+	var idxOfStart, idxOfEnd int
+	for fileScanner.Scan() {
+		line := fileScanner.Text()
+		if line == "##start" {
+			idxOfStart = len(fileLines)
+		}
+		if line == "##end" {
+			idxOfEnd = len(fileLines)
+		}
+		fileLines = append(fileLines, line)
+	}
+	if len(fileLines) == 0 {
+		return UpdatedFarm{}, fmt.Errorf("prepFarm: empty file")
+	}
 
-// 	result.AntAmount, err = strconv.Atoi(fileLines[0])
-// 	if err != nil {
-// 		return Farm{}, fmt.Errorf("prepFarm: failed to parse ant amount: %w", err)
-// 	}
+	result.AntAmount, err = strconv.Atoi(fileLines[0])
+	if err != nil {
+		return UpdatedFarm{}, fmt.Errorf("prepFarm: failed to parse ant amount: %w", err)
+	}
 
-// 	// var emptyV Vertex
-// 	var links []string
-// 	var rooms []string
-// 	var start string
-// 	var end string
+	// var emptyV Vertex
+	var links []string
+	var rooms []string
 
-// 	for i, line := range fileLines[1:] {
-// 		switch i {
-// 		case idxOfStart, idxOfEnd:
-// 			if i == idxOfStart {
-// 				start = line
-// 			} else {
-// 				end = line
-// 			}
-// 		default:
-// 			if strings.Contains(line, "-") {
-// 				links = append(links, line)
-// 			} else if !strings.Contains(line, "#") {
-// 				rooms = append(rooms, line)
-// 			}
-// 		}
-// 	}
+	for i, line := range fileLines[1:] {
+		switch i {
+		case idxOfStart, idxOfEnd:
+			if i == idxOfStart {
+				result.Start = line
+			} else {
+				result.End = line
+			}
+		default:
+			if strings.Contains(line, "-") {
+				links = append(links, line)
+			} else if !strings.Contains(line, "#") {
+				rooms = append(rooms, line)
+			}
+		}
+	}
 
-// 	result.Start, err = TransformToVertex(start)
-// 	if err != nil {
-// 		return Farm{}, fmt.Errorf("prepFarm: failed to transform start field: %w", err)
-// 	}
+	result.AdjacencyList = TransformToAdjacencyList(links)
+	if len(result.AdjacencyList) == 0 {
+		return UpdatedFarm{}, fmt.Errorf("prepFarm: failed to transform links field")
+	}
 
-// 	result.End, err = TransformToVertex(end)
-// 	if err != nil {
-// 		return Farm{}, fmt.Errorf("prepFarm: failed to transform end field: %w", err)
-// 	}
-
-// 	result.AdjacencyList = TransformToAdjacencyList(links)
-// 	if len(result.AdjacencyList) == 0 {
-// 		return Farm{}, fmt.Errorf("prepFarm: failed to transform links field")
-// 	}
-
-// 	result.Rooms = make(map[string]Vertex)
-// 	for _, elem := range rooms {
-// 		fmt.Println("elem: ", elem)
-// 		if elem == "" {
-// 			continue
-// 		}
-// 		newVertex, err := TransformToVertex(elem)
-// 		if err != nil {
-// 			return Farm{}, fmt.Errorf("prepFarm: failed to transform rooms field: %w", err)
-// 		}
-// 		result.Rooms[newVertex.Name] = newVertex
-// 	}
-
-// 	return result, nil
-// }
+	return result, nil
+}
 
 // func TransformToVertex(data string) (Vertex, error) {
 // 	parts := strings.Fields(data)

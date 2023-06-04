@@ -2,35 +2,47 @@ package main
 
 import (
 	"fmt"
+	"os"
 
-	in "github.com/ive663/lem-in/internal"
+	"github.com/ive663/lem-in/internal"
 )
 
-type Farm struct {
-	antAmount string
-	start     string
-	end       string
-	links     []string
-	rooms     []string
-}
-
-type UpdatedFarm struct {
-	AntAmount     int
-	Start         string
-	End           string
-	AdjacencyList map[string][]string
-	Weights       map[[2]string]bool
+var Old_farm = internal.Farm{
+	AntAmount: "9",
+	Start:     "start 0 3",
+	End:       "end 10 1",
+	Links: []string{"G0-G1", "G1-G2", "G2-G3", "G3-G4", "G4-D3", "start-A0", "A0-A1", "A0-D1", "A1-A2",
+		"A1-B1", "A2-end", "A2-C3", "start-B0", "B0-B1", "B1-E2", "start-C0", "C0-C1", "C1-C2",
+		"C2-C3", "C3-I4", "D1-D2", "D1-F2", "D2-E2", "D2-D3", "D2-F3", "D3-end", "F2-F3", "F3-F4",
+		"F4-end", "I4-I5", "I5-end"},
+	Rooms: []string{"C0 1 0", "C1 2 0", "C2 3 0", "C3 4 0", "I4 5 0", "I5 6 0", "A0 1 2", "A1 2 1",
+		"A2 4 1", "B0 1 4", "B1 2 4", "E2 6 4", "D1 6 3", "D2 7 3", "D3 8 3", "H4 4 2", "H3 5 2",
+		"F2 6 2", "F3 7 2", "F4 8 2", "G0 1 5", "G1 2 5", "G2 3 5", "G3 4 5", "G4 6 5"},
 }
 
 func main() {
-	in.UpdateFarm()
+
+	input := os.Args[1]
+	new_farm, err := internal.PrepFarm(input)
+	if err != nil {
+		fmt.Errorf("new farm err %w", err)
+		return
+	}
+
+	// _, err := internal.UpdateFarm(Old_farm)
+	// if err != nil {
+	// 	fmt.Errorf("Updated farm err %w", err)
+	// 	return
+	// }
 	fmt.Println("=================================")
 	// fmt.Println("ALL: ", frm)
-	fmt.Println("Start: ", farm.Start)
-	fmt.Println("End: ", farm.End)
-	fmt.Println("antAmunt: ", farm.AntAmount)
-	fmt.Println("links: ", farm.AdjacencyList)
-	fmt.Println("rooms: ", farm.Rooms)
+	fmt.Println("Start: ", new_farm.Start)
+	fmt.Println("End: ", new_farm.End)
+	fmt.Println("antAmunt: ", new_farm.AntAmount)
+	fmt.Println("AdjacencyList: ", new_farm.AdjacencyList)
+	fmt.Println()
+	internal.Queue()
+
 	// paths := path(links, start, end)
 	// fmt.Println(paths)
 }
