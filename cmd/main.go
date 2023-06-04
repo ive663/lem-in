@@ -41,7 +41,33 @@ func main() {
 	fmt.Println("antAmunt: ", new_farm.AntAmount)
 	fmt.Println("AdjacencyList: ", new_farm.AdjacencyList)
 	fmt.Println()
-	internal.Queue()
+
+	antsAmount1 := 10
+	paths1 := [][]string{
+		{"h"},
+		{"h", "A"},
+		{"h", "A", "t"},
+	}
+	antsAmount2 := 10
+	paths2 := [][]string{
+		{"h", "A"},
+		{"h", "A", "t"},
+		{"h", "A", "t"},
+		{"0", "o", "h", "e", "h", "A", "t", "A"},
+	}
+	antsAmount3 := 10
+	paths3 := [][]string{
+		{"h", "A"},
+		{"h", "A", "t"},
+		{"0", "o", "h", "e", "h", "A", "t", "A"},
+	}
+
+	fmt.Println("path1:        ", paths1)
+	fmt.Println("queue result: ", internal.Queue(paths1, antsAmount1))
+	fmt.Println("path2:        ", paths2)
+	fmt.Println("queue result: ", internal.Queue(paths2, antsAmount2))
+	fmt.Println("path3:        ", paths3)
+	fmt.Println("queue result: ", internal.Queue(paths3, antsAmount3))
 
 	// paths := path(links, start, end)
 	// fmt.Println(paths)
