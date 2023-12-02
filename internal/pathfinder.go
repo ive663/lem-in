@@ -84,84 +84,84 @@ func isContain(arr []string, target string) bool {
 // }
 
 // Создает начальную схему весов, где все равно 0
-func CalculateWeights(farm *UpdatedFarm, startPoint string, visited []string) {
-	visited = append(visited, startPoint)
+// func CalculateWeights(farm *UpdatedFarm, startPoint string, visited []string) {
+// 	visited = append(visited, startPoint)
 
-	for _, child := range farm.AdjacencyList[startPoint] {
-		_, ok := farm.Weights[[2]string{startPoint, child}]
-		if ok {
-			continue
-		}
+// 	for _, child := range farm.AdjacencyList[startPoint] {
+// 		_, ok := farm.Weights[[2]string{startPoint, child}]
+// 		if ok {
+// 			continue
+// 		}
 
-		farm.Weights[[2]string{startPoint, child}] = true
-		farm.Weights[[2]string{child, startPoint}] = true
+// 		farm.Weights[[2]string{startPoint, child}] = true
+// 		farm.Weights[[2]string{child, startPoint}] = true
 
-		if !isContain(visited, child) {
-			CalculateWeights(farm, child, visited)
-		}
+// 		if !isContain(visited, child) {
+// 			CalculateWeights(farm, child, visited)
+// 		}
 
-	}
+// 	}
 
-}
+// }
 
 // Возвращает максимально возможное число
 // непересекающихся путей к конечной точке
-func CountPaths(farm UpdatedFarm) int {
-	endPointsNum := len(farm.AdjacencyList[farm.End])
-	startPointsNum := len(farm.AdjacencyList[farm.Start])
+// func CountPaths(farm UpdatedFarm) int {
+// 	endPointsNum := len(farm.AdjacencyList[farm.End])
+// 	startPointsNum := len(farm.AdjacencyList[farm.Start])
 
-	if endPointsNum < startPointsNum {
-		return endPointsNum
-	} else {
-		return startPointsNum
-	}
-}
+// 	if endPointsNum < startPointsNum {
+// 		return endPointsNum
+// 	} else {
+// 		return startPointsNum
+// 	}
+// }
 
-func ClosePaths(farm *UpdatedFarm, child string) {
-	parents := farm.AdjacencyList[child]
+// func ClosePaths(farm *UpdatedFarm, child string) {
+// 	parents := farm.AdjacencyList[child]
 
-	for _, parent := range parents {
-		farm.Weights[[2]string{parent, child}] = false
-	}
-}
+// 	for _, parent := range parents {
+// 		farm.Weights[[2]string{parent, child}] = false
+// 	}
+// }
 
 // Algorithm find shortest path in graph
 // between start and end
 // result path described like array of Vertexes
-func DijkstraAlgo(farm *UpdatedFarm, parent string, parents []string) []string {
-	var result []string
+// func DijkstraAlgo(farm *UpdatedFarm, parent string, parents []string) []string {
+// 	var result []string
 
-	childs := farm.AdjacencyList[parent]
+// 	childs := farm.AdjacencyList[parent]
 
-	// поиск конца среди текущих потомков
-	for _, child := range childs {
-		if child == farm.End {
-			result = append(result, parents...)
-			result = append(result, parent)
-			result = append(result, child)
-			return result
-		}
-	}
+// 	// поиск конца среди текущих потомков
+// 	for _, child := range childs {
+// 		if child == farm.End {
+// 			result = append(result, parents...)
+// 			result = append(result, parent)
+// 			result = append(result, child)
+// 			return result
+// 		}
+// 	}
 
-	// переход к потомкам на уровень ниже
-	for _, child := range childs {
-		if !isContain(parents, child) &&
-			farm.Weights[[2]string{parent, child}] {
-			parents = append(parents, parent)
-			result = DijkstraAlgo(farm, child, parents)
-		}
+// 	// переход к потомкам на уровень ниже
+// 	for _, child := range childs {
+// 		if !isContain(parents, child) &&
+// 			farm.Weights[[2]string{parent, child}] {
+// 			parents = append(parents, parent)
+// 			result = DijkstraAlgo(farm, child, parents)
+// 		}
 
-		// если нет верного пути впереди
-		if result == nil {
-			continue
-		}
+// 		// если нет верного пути впереди
+// 		if result == nil {
+// 			continue
+// 		}
 
-		// делаем так чтобы текущая вершина не была выбрана
-		// из родителей
-		ClosePaths(farm, child)
+// 		// делаем так чтобы текущая вершина не была выбрана
+// 		// из родителей
+// 		ClosePaths(farm, child)
 
-		return result
-	}
+// 		return result
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
