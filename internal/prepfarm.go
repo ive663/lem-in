@@ -4,13 +4,11 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"strings"
-
-	// "log"
-
 	"strconv"
+	"strings"
 )
 
+// sorted farm
 type UpdatedFarm struct {
 	AntAmount     int
 	Start         string
@@ -20,6 +18,8 @@ type UpdatedFarm struct {
 	Queue         []int
 	Paths         [][]string
 }
+
+// base farm
 type Farm struct {
 	AntAmount string
 	Start     string
@@ -28,52 +28,7 @@ type Farm struct {
 	Rooms     []string
 }
 
-func UpdateFarm(raw_farm Farm) (result UpdatedFarm, err error) {
-	result.AntAmount, err = strconv.Atoi(raw_farm.AntAmount)
-	if err != nil {
-		return result, fmt.Errorf("UpdateFarm: %w", err)
-	}
-
-	result.Start = GetName(raw_farm.Start)
-
-	result.End = GetName(raw_farm.End)
-
-	result.AdjacencyList = TransformToAdjacencyList(raw_farm.Links)
-	if len(result.AdjacencyList) == 0 {
-		return UpdatedFarm{}, fmt.Errorf("UpdateFarm: can't transform links field of Farm")
-	}
-
-	result.Weights = make(map[[2]string]bool)
-
-	return result, nil
-}
-
-func GetName(info string) string {
-	splittedData := strings.Split(info, " ")
-	if len(splittedData) == 0 {
-		return ""
-	}
-
-	return splittedData[0]
-}
-
-// function that transform list of edges to adjacency list
-func TransformToAdjacencyList(listOfEdges []string) map[string][]string {
-	var result map[string][]string = make(map[string][]string)
-
-	if len(listOfEdges) == 0 {
-		return result
-	}
-
-	for _, pairOfVertex := range listOfEdges {
-		vertexes := strings.Split(pairOfVertex, "-")
-		result[vertexes[0]] = append(result[vertexes[0]], vertexes[1])
-		result[vertexes[1]] = append(result[vertexes[1]], vertexes[0])
-	}
-
-	return result
-}
-
+// farm parser
 func PrepFarm(filename string) (result UpdatedFarm, err error) {
 	f, err := os.Open(filename)
 	if err != nil {
@@ -134,29 +89,53 @@ func PrepFarm(filename string) (result UpdatedFarm, err error) {
 	return result, nil
 }
 
-// func TransformToVertex(data string) (Vertex, error) {
-// 	parts := strings.Fields(data)
-// 	if len(parts) < 3 {
-// 		return Vertex{}, fmt.Errorf("TransformToVertex: invalid data")
-// 	}
+func UpdateFarm(raw_farm Farm) (result UpdatedFarm, err error) {
+	result.AntAmount, err = strconv.Atoi(raw_farm.AntAmount)
+	if err != nil {
+		return result, fmt.Errorf("UpdateFarm: %w", err)
+	}
 
-// 	x, err := strconv.Atoi(parts[1])
-// 	if err != nil {
-// 		return Vertex{}, fmt.Errorf("TransformToVertex: %w", err)
-// 	}
-// 	y, err := strconv.Atoi(parts[2])
-// 	if err != nil {
-// 		return Vertex{}, fmt.Errorf("TransformToVertex: %w", err)
-// 	}
-// 	return Vertex{
-// 		Name: parts[0],
-// 		X:    x,
-// 		Y:    y,
-// 	}, nil
-// }
+	result.Start = GetName(raw_farm.Start)
+
+	result.End = GetName(raw_farm.End)
+
+	result.AdjacencyList = TransformToAdjacencyList(raw_farm.Links)
+	if len(result.AdjacencyList) == 0 {
+		return UpdatedFarm{}, fmt.Errorf("UpdateFarm: can't transform links field of Farm")
+	}
+
+	result.Weights = make(map[[2]string]bool)
+
+	return result, nil
+}
+
+func GetName(info string) string {
+	splittedData := strings.Split(info, " ")
+	if len(splittedData) == 0 {
+		return ""
+	}
+
+	return splittedData[0]
+}
+
+// function that transform list of edges to adjacency list
+func TransformToAdjacencyList(listOfEdges []string) map[string][]string {
+	var result map[string][]string = make(map[string][]string)
+
+	if len(listOfEdges) == 0 {
+		return result
+	}
+
+	for _, pairOfVertex := range listOfEdges {
+		vertexes := strings.Split(pairOfVertex, "-")
+		result[vertexes[0]] = append(result[vertexes[0]], vertexes[1])
+		result[vertexes[1]] = append(result[vertexes[1]], vertexes[0])
+	}
+
+	return result
+}
 
 // paths for test01.txt:
-//
 // path := Path{
 // 	Vertices: [][]Vertex{
 // 		{{t, 1, 9}, {E, 5, 9}, {a, 8, 9}, {m, 8, 6}},
@@ -172,8 +151,3 @@ func PrepFarm(filename string) (result UpdatedFarm, err error) {
 // L4-end L5-end L6-end L7-m L8-k L9-e L10-a
 // L7-end L8-end L9-end L10-m
 // L10-end
-
-// // Accessing individual vertices
-// firstVertex := path.Vertices[0][0]
-// firstPath := path.Vertices[0]
-// secondVertex := path.Vertices[1][1]
