@@ -128,6 +128,7 @@ This project was completed as part of a programming challenge at [Alem School](h
 ## Collaborators
 ---
  amayev - https://github.com/ive663
+ 
  HgCl2  - https://github.com/HgCl2
 ## License
 ---
