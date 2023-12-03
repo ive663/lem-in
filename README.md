@@ -11,6 +11,10 @@ This project is a digital version of an ant farm simulation. The goal of the pro
 - Handles invalid or poorly formatted input data gracefully
 - Provides a clean and well-structured codebase
 
+## TODO list
+
+[TODO list](TODO.md)
+
 ## Getting Started
 
 To get started with the `lem-in` project, follow these steps:
@@ -128,7 +132,7 @@ This project was completed as part of a programming challenge at [Alem School](h
 ## Collaborators
 ---
  amayev - https://github.com/ive663
- 
+
  HgCl2  - https://github.com/HgCl2
 ## License
 ---
