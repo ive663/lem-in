@@ -3,10 +3,10 @@ TODO list
 To-Do List for Project "lem-in" - Digital Ant Farm:
 
 1. File Input Parsing:
-[✓] - Read and parse the input file.
-[✓] - Handle comments and unknown commands appropriately.
-[✓] - Validate the input data format.
-[✓] - Identify the start and end rooms.
+[✓] - Read and parse the input file.  
+[✓] - Handle comments and unknown commands appropriately.  
+[✓] - Validate the input data format.  
+[✓] - Identify the start and end rooms.  
 
 2. Create Ant Farm:
 [✓] - Represent the ant farm with rooms and tunnels.
